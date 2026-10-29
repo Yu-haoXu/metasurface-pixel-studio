@@ -1,0 +1,463 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Metasurface Pixel Studio — Image, Letters & Shapes</title>
+<style>body{margin:0;background:#eee;color:#222;font:16px system-ui}main{max-width:1000px;margin:auto;padding:28px}h1{font-size:25px}section{background:white;padding:20px;margin:16px 0;border-radius:12px}label{display:inline-block;margin:8px 18px 8px 0}input[type=number]{width:85px;padding:5px}select,button{padding:7px}p{line-height:1.7}.cal{height:22px;border-left:2px solid;border-right:2px solid;border-bottom:2px solid;box-sizing:border-box;margin:22px 0}#stage{display:flex;justify-content:center;align-items:center;gap:65px;min-height:220px;background:#999;overflow:auto}figure{flex-shrink:0;margin:0;text-align:center}figcaption{font-size:13px;margin-top:15px}canvas{display:block;margin:auto}#stats{font-variant-numeric:tabular-nums}.hint{color:#666;font-size:14px}.focus #exitFocus{display:block!important}.focus main>h1,.focus #calibration,.focus #controls,.focus #notes{display:none}.focus #stage{min-height:80vh}.focus #result{padding:0;background:#999}.focus #stats{padding:12px}[hidden]{display:none!important}#iconControls{border-top:1px solid #ddd;margin-top:12px;padding-top:8px}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}#uploadControls{border-top:1px solid #ddd;margin-top:12px;padding-top:12px}#uploadControls input[type=file]{max-width:290px}#imageActions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:12px 0}#imageActions button{background:#f3f6fa;border:1px solid #cbd4e0;border-radius:5px}#largePreview{background:#f6f7fa;border:1px solid #e0e4ec;border-radius:9px;padding:14px;margin-top:16px}#largePreview canvas{max-width:100%;height:auto;image-rendering:pixelated;box-shadow:0 1px 7px #aaa}#imageStatus{white-space:pre-line}.note-chip{background:#f0f4fa;border-radius:4px;padding:3px 7px}.image-preview-row{display:flex;flex-wrap:wrap;gap:25px;justify-content:center}.image-preview-row figure{margin:4px}#largePreview .previewCaption{text-align:center;color:#555;margin:10px 0 0;font-size:13px}@media(max-width:600px){main{padding:12px}#stage{gap:24px;justify-content:flex-start;padding:20px}}
+
+/* Workspace-first layout for quick visual pixelation comparisons. */
+main{max-width:1320px}#result{padding:22px}#stage{gap:32px;padding:18px;border-radius:10px;min-height:160px}#stage canvas{max-width:100%;height:auto}#stage figure{max-width:44%}
+#largePreview{background:#f7f9fc;border:1px solid #d9e0ea;padding:20px;border-radius:14px;margin-top:16px;box-shadow:0 3px 18px rgba(18,38,63,.05)}
+.preview-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px}.preview-head h2{font-size:19px;margin:0 0 3px}.preview-head p{font-size:13px;color:#697588;margin:0;line-height:1.5}.grid-readout{border:1px solid #d8e5f9;background:#eaf2ff;color:#20539a;padding:7px 10px;font-size:12px;font-weight:700;border-radius:8px;white-space:nowrap}
+.preview-workbench{display:grid;grid-template-columns:minmax(0,1fr) 275px;gap:18px;align-items:start}
+#largePreview .image-preview-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start;justify-content:initial}
+#largePreview .preview-card{margin:0;min-width:0;max-width:none;display:block;background:#fff;border:1px solid #dde5ed;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px #182f480b;text-align:center}
+.preview-card-title{display:flex;justify-content:space-between;align-items:center;gap:5px;padding:12px 13px;border-bottom:1px solid #e9edf2;color:#27364b;font-size:13px}.preview-card-title span{font-size:11px;color:#8191a5}
+.preview-frame{height:345px;padding:12px;display:flex;justify-content:center;align-items:center;background:repeating-conic-gradient(#f3f5f8 0% 25%,#e7ebf0 0% 50%) 50%/18px 18px;overflow:hidden}
+#largePreview .preview-frame canvas{max-width:100%;max-height:100%;height:auto!important;width:auto!important;object-fit:contain;box-shadow:0 3px 14px #0002;image-rendering:pixelated}
+#largePreview .preview-card figcaption{margin:0;padding:10px;color:#6a778a;font-size:12px;background:#fff}
+#imageTuning{position:sticky;top:16px;border:1px solid #dce4ed;border-radius:12px;padding:16px;background:#fff;box-shadow:0 2px 8px #182f480b}
+.tuning-heading{display:flex;justify-content:space-between;align-items:center;gap:4px;font-size:15px;margin-bottom:15px}.tuning-symbol{color:#255eb6}.live-tag{font-size:10px;color:#168057;background:#e8f8ed;border-radius:10px;padding:4px 7px;white-space:nowrap}
+#imageTuning .full-label{display:block;margin:12px 0 5px;font-size:12px;color:#516174;font-weight:650}#imageTuning .wide-select{width:100%;max-width:100%;padding:8px 5px;border:1px solid #d5dde7;border-radius:7px;background:white;color:#233044;font-size:12px}
+.tuning-group{margin-top:12px}.tuning-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px}.tuning-label label{margin:0;color:#33445b}.value-field{display:flex;align-items:center;gap:4px;border-radius:6px;border:1px solid #d5dde7;padding:0 5px}.value-field input[type=number]{width:52px;margin:0;padding:5px 1px;border:0;text-align:right;font:600 12px system-ui;outline:0}.value-field span{font-size:11px;color:#8290a3}
+.pixel-slider{display:block;width:100%;margin:4px 0 7px;accent-color:#235db3;cursor:pointer}.range-ends{display:flex;justify-content:space-between;font-size:10px;color:#8d99aa}.cell-info{background:#f1f5fa;border:1px solid #e2e9f2;padding:10px;border-radius:7px;font-size:12px;color:#425675;line-height:1.55;margin-top:12px;font-variant-numeric:tabular-nums}
+.tuning-divider{height:1px;background:#e8edf2;margin:16px 0 12px}.check-line{display:flex!important;align-items:center;gap:7px;font-size:12px;margin:14px 0!important;color:#526276}.small-help{color:#8a96a5;font-size:11px;line-height:1.5;margin:9px 0 0}.export-heading{font-size:12px;color:#526276}
+#imageActions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0 0}#imageActions button{font-size:11px;padding:10px 5px;border-radius:6px;background:#f3f6fb;border:1px solid #d8e0e9;color:#295388}#imageActions button:last-child{grid-column:1/-1}
+.upload-line{display:flex;align-items:center;gap:15px;flex-wrap:wrap}#uploadControls input[type=file]{font-size:13px}#uploadControls .hint{margin:5px 0}
+@media(max-width:1080px){.preview-workbench{grid-template-columns:minmax(0,1fr) 235px}.preview-frame{height:280px}#imageTuning{padding:12px}}
+@media(max-width:840px){.preview-workbench{grid-template-columns:1fr}#imageTuning{position:static;display:grid;grid-template-columns:1fr 1fr;gap:8px 15px;align-items:start}#imageTuning>.tuning-heading,#imageTuning>.tuning-divider,#imageTuning>.cell-info,#imageTuning>.small-help,#imageTuning>.export-heading,#imageTuning>#imageActions{grid-column:1/-1}#imageTuning .tuning-group{margin-top:0}.preview-frame{height:300px}}
+@media(max-width:560px){#largePreview{padding:10px}.preview-head{display:block}.grid-readout{display:inline-block;margin-top:10px}.preview-workbench{gap:10px}#largePreview .image-preview-row{grid-template-columns:1fr;gap:10px}.preview-frame{height:260px}#imageTuning{display:block}#stage{gap:20px;justify-content:flex-start;overflow:auto}#stage figure{max-width:none}}
+#imageTuning .size-title{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#34465b;font-weight:700;margin:4px 0 8px}
+#imageTuning .tuning-label{gap:6px}#imageTuning .tuning-label label{flex:1}
+#imageTuning .size-lock{display:flex!important;align-items:center;gap:8px;font-size:12px;color:#3d4d61;margin:12px 0 6px!important;cursor:pointer}
+#imageTuning .size-lock input{accent-color:#235db3}
+#imageTuning .size-note{margin:4px 0 8px;line-height:1.55;font-size:11px;color:#66798e}
+#imageTuning .size-quick-info{font-size:11px;color:#47749c;background:#f1f7ff;border-radius:6px;padding:7px 9px;margin-top:10px}
+#controls #globalImageDimensionsNote{font-size:12px;color:#66798e;margin:6px 0}
+
+</style>
+<button id="exitFocus" onclick="document.body.classList.remove('focus')" style="display:none;position:fixed;right:16px;top:16px;z-index:2">Exit focus mode</button><main><h1>Metasurface Pixel Studio</h1>
+<section id="calibration"><b>1. Calibrate the physical display size</b><p>Measure the line below with a physical ruler and enter its measured length. After calibration, it should measure 50 mm. Measure again to check. Recalibrate after changing browser zoom, display scaling, or monitors.</p><div id="ruler" class="cal"></div><label>Measured length (mm) <input id="measured" type="number" value="50" min="1" step="0.1"></label><button id="calibrate">Calibrate</button> <span id="scale"></span></section>
+<section id="controls"><b>2. Set the test conditions</b><br>
+<label id="globalSampleWidth">Sample width (mm) <input id="sampleWidth" type="number" value="10" min="1" max="100" step="0.1"></label><label id="globalSampleHeight">Sample height (mm) <input id="sampleHeight" type="number" value="10" min="1" max="100" step="0.1"></label><label id="physicalPitchGlobal">Test pixel side length (mm) <input id="pitch" type="number" value="0.3" min="0.02" max="5" step="0.01"></label><label>Viewing distance (cm) <input id="distance" type="number" value="40" min="10" max="200"></label><p id="globalImageDimensionsNote" hidden>Physical sample size is adjustable beside the image previews.</p><br>
+<div style="border:1px solid #ddd;padding:12px;margin:12px 0">
+<label>Display mode <select id="mode"><option value="letters" selected>Pixels inside letters</option><option value="shapes">Pixels inside shapes / icons</option><option value="faces">Pixelated expressions</option><option value="square">Full sample pattern</option><option value="image">Imported image (area-averaged pixels)</option></select></label>
+<span id="textControls"><label>Text <input id="letters" type="text" value="A" maxlength="20" style="width:140px"></label>
+<label>Letter height (mm) <input id="letterHeight" type="number" value="7" min="0.1" max="50" step="0.1"></label>
+<label>Stroke width (mm) <input id="stroke" type="number" value="0.8" min="0.02" max="10" step="0.05"></label>
+<label>Letter spacing (mm) <input id="spacing" type="number" value="0.5" min="0" max="10" step="0.1"></label>
+</span><div id="uploadControls" hidden>
+  <div class="upload-line"><label>Upload image <input id="imageFile" type="file" accept="image/*"></label><span class="hint">Import JPG, PNG or WebP, then adjust the pixel grid directly beside the comparison below.</span></div>
+  <p id="imageStatus" class="hint">Choose an image to convert it to an area-averaged pixel grid. Your image stays in your browser.</p>
+</div><div id="iconControls" hidden>
+<label>Shape <select id="shape"><option value="circle">Circle</option><option value="ellipse">Ellipse</option><option value="square">Square / rectangle</option><option value="triangle">Triangle</option><option value="diamond">Diamond</option><option value="pentagon">Pentagon</option><option value="hexagon">Hexagon</option><option value="star">Star</option><option value="heart">Heart</option><option value="arrow">Arrow</option><option value="plus">Plus</option><option value="cross">Cross</option><option value="moon">Crescent moon</option><option value="sun">Sun</option><option value="flower">Flower</option><option value="check">Check mark</option></select></label>
+<label>Expression <select id="face"><option value="smile">Smile 🙂</option><option value="happy">Happy 😄</option><option value="wink">Wink 😉</option><option value="sad">Sad 🙁</option><option value="surprise">Surprised 😮</option><option value="neutral">Neutral 😐</option><option value="angry">Angry 😠</option><option value="love">Heart eyes 😍</option><option value="cool">Sunglasses 😎</option><option value="tongue">Tongue out 😛</option></select></label>
+<label>Width (mm) <input id="iconWidth" type="number" min="0.1" max="50" step="0.1" value="7"></label>
+<label>Height (mm) <input id="iconHeight" type="number" min="0.1" max="50" step="0.1" value="7"></label>
+<label>Style <select id="iconStyle"><option value="outline">Outline</option><option value="filled">Filled silhouette</option></select></label>
+<label>Line width (mm) <input id="iconStroke" type="number" min="0.02" max="10" step="0.05" value="0.5"></label>
+<label>Rotation (°) <input id="rotation" type="number" min="-360" max="360" step="5" value="0"></label>
+<button id="fitIcon" type="button">Fit to sample</button>
+<p class="hint">Every icon is constructed geometrically, then sampled on the same square pixel grid as the letters. Expressions use outlines and facial features; filled faces leave the eyes and mouth as background cutouts. Width and height control the icon independently. Features narrower than one test pixel may disappear.</p></div>
+<label>Background <input id="background" type="color" value="#ffffff"></label>
+<p class="hint">A–Z and 0–9 use a built-in geometric stroke font; lowercase is converted to uppercase. Letter height includes the stroke width; character width follows the geometric font proportions. Sample width and height can be set independently without stretching the letters or square test pixels. Stroke width is specified in physical mm. Text is centered without automatic shrinking. Each square pixel is shown in full when its center lies inside the selected design; otherwise it is hidden. Cells crossing the sample boundary are omitted in letter mode. Letter outlines and effective stroke widths are quantized to the test pixel grid. The reference uses exactly the same selected cells filled with the average color of the underlying full-sample pattern.</p>
+</div>
+<p class="hint"><b>Viewing distance is a calculation only:</b> it changes the angular-size readout, not the physical pattern size. Move your eyes to the entered distance from the screen.</p>
+<div id="patternControls"><label>Pattern <select id="pattern"><option value="checker">Checkerboard</option><option value="stripes">Vertical stripes</option><option value="random">Random pixels (fixed seed)</option><option value="halves">Two large color blocks</option></select></label><label>Color preset <select id="preset"><option value="bw">Black / white (luminance contrast)</option><option value="rg">Red / green (approximately equal luminance)</option><option value="rb">Red / blue (also differs in luminance)</option><option value="custom">Custom</option></select></label><label>A <input type="color" id="a" value="#000000"></label><label>B <input type="color" id="b" value="#ffffff"></label><br>
+<label>Pixel color difference <input id="contrast" type="range" min="0" max="100" value="100"> <span id="contrastText">100%</span></label>
+<p class="hint">Approximate equal luminance is calculated using standard sRGB, not measured for your eyes or display. Compare black/white with red/green: can you detect texture, and can you distinguish the colors? Pixel color difference: 100% keeps the original colors; 0% makes both colors equal to the linear-light average.</p></div><button id="focus">Enter focus mode</button></section>
+<section id="result"><div id="stage"><figure><canvas id="sample"></canvas><figcaption id="sampleCaption">Pattern at calibrated physical size</figcaption></figure><figure><canvas id="average"></canvas><figcaption id="averageCaption">Average-color reference (same shape)</figcaption></figure></div><p id="stats"></p><p id="textStatus" class="hint"></p>
+  <div id="largePreview" hidden>
+    <div class="preview-head"><div><h2>Image pixelation workbench</h2><p>Drag a slider and compare the source with the pixelated result instantly. The previews here are enlarged for design inspection, not physical-size displays.</p></div><span id="imageGridReadout" class="grid-readout">Upload an image</span></div>
+    <div class="preview-workbench">
+      <div class="image-preview-row">
+        <figure class="preview-card"><div class="preview-card-title"><strong>Original image</strong><span>Source</span></div><div class="preview-frame"><canvas id="sourcePreview"></canvas></div><figcaption>Reference image</figcaption></figure>
+        <figure class="preview-card"><div class="preview-card-title"><strong>Pixelated result</strong><span>Area average</span></div><div class="preview-frame"><canvas id="pixelPreview"></canvas></div><figcaption>One averaged RGB color per cell</figcaption></figure>
+      </div>
+      <aside id="imageTuning">
+        <div class="tuning-heading"><strong><span class="tuning-symbol">◫</span> Design controls</strong><span class="live-tag">Live preview</span></div>
+        <div class="size-title">Physical sample size</div>
+        <div class="tuning-group">
+          <div class="tuning-label"><label for="imageSampleWidth">Total width</label><div class="value-field"><input id="imageSampleWidth" type="number" min="0.1" max="100" step="0.1" value="10"><span>mm</span></div></div>
+          <input id="imageSampleWidthSlider" class="pixel-slider" type="range" min="0.1" max="100" step="0.1" value="10" aria-label="Total physical sample width"><div class="range-ends"><span>0.1 mm</span><span>100 mm</span></div>
+        </div>
+        <div class="tuning-group">
+          <div class="tuning-label"><label for="imageSampleHeight">Total height</label><div class="value-field"><input id="imageSampleHeight" type="number" min="0.1" max="100" step="0.1" value="10"><span>mm</span></div></div>
+          <input id="imageSampleHeightSlider" class="pixel-slider" type="range" min="0.1" max="100" step="0.1" value="10" aria-label="Total physical sample height"><div class="range-ends"><span>0.1 mm</span><span>100 mm</span></div>
+        </div>
+        <label class="size-lock"><input id="imageAspectLock" type="checkbox" checked> Lock original image aspect ratio</label>
+        <p id="imageAspectInfo" class="size-note">After upload, the other dimension follows the original image ratio. Uncheck to set an independent canvas size; the photo still never stretches.</p>
+        <div id="imageSizeSummary" class="size-quick-info">Sample: 10.00 × 10.00 mm</div>
+        <div class="tuning-divider"></div>
+        <label class="full-label" for="imageGridMode">Pixel resolution</label>
+        <select id="imageGridMode" class="wide-select"><option value="pitch">Physical pixel size (mm)</option><option value="count">Pixel columns × rows</option></select>
+        <div id="imagePitchInputs" class="tuning-group">
+          <div class="tuning-label"><label for="imagePitch">Pixel side length</label><div class="value-field"><input id="imagePitch" type="number" value="0.3" min="0.02" max="5" step="0.01"><span>mm</span></div></div>
+          <input id="imagePitchSlider" class="pixel-slider" type="range" min="0" max="1000" value="491" step="1" aria-label="Adjust physical pixel size"><div class="range-ends"><span>0.02 mm</span><span>5 mm</span></div>
+        </div>
+        <div id="imageCountInputs" class="tuning-group" hidden>
+          <div class="tuning-label"><label for="imageCols">Columns</label><div class="value-field"><input id="imageCols" type="number" min="1" max="400" step="1" value="40"><span>px</span></div></div>
+          <input id="imageColsSlider" class="pixel-slider" type="range" min="1" max="200" step="1" value="40">
+          <div class="tuning-label"><label for="imageRows">Rows</label><div class="value-field"><input id="imageRows" type="number" min="1" max="400" step="1" value="40"><span>px</span></div></div>
+          <input id="imageRowsSlider" class="pixel-slider" type="range" min="1" max="200" step="1" value="40">
+          <p class="small-help">Use the boxes for values up to 400.</p>
+        </div>
+        <div id="actualCellInfo" class="cell-info">Upload a photo to view cell dimensions.</div>
+        <div class="tuning-divider"></div>
+        <label class="full-label" for="imageFit">Fit source image</label>
+        <select id="imageFit" class="wide-select"><option value="contain" selected>Contain — keep entire image, add margins</option><option value="cover">Cover — crop edges, keep proportions</option></select>
+        <label class="full-label" for="imageAverageSpace">Color averaging</label>
+        <select id="imageAverageSpace" class="wide-select"><option value="srgb" selected>Arithmetic RGB (standard)</option><option value="linear">Linear-light RGB</option></select>
+        <label class="check-line"><input id="imageGridLines" type="checkbox"> Show pixel grid lines</label>
+        <p class="small-help">The image always keeps its native proportions. Contain adds background margins; Cover crops without stretching. Each pixel uses a weighted RGB average over the source region.</p>
+        <div class="tuning-divider"></div>
+        <strong class="export-heading">Export</strong>
+        <div id="imageActions"><button id="downloadPixels" type="button" disabled>Pixel PNG</button><button id="downloadPreview" type="button" disabled>Enlarged PNG</button><button id="downloadCSV" type="button" disabled>RGB / HEX CSV</button></div>
+      </aside>
+    </div>
+  </div></section>
+<section id="notes"><b>3. Observe at 30, 40, and 50 cm</b><p>Measure distance from your eyes to the screen. The distance input only calculates angular size; it does not resize the pattern. Can you see texture? Can you distinguish the two colors? Does the pattern resemble the average color on the right? Press Esc or use the exit button to leave focus mode.</p><p>The default pattern is 10 mm wide, with 0.3 mm test pixels. Edge cells are clipped in full-sample mode; text, shapes and expressions use complete cells only. Display resolution limits accuracy: fewer than 3 display pixels per test pixel is a practical warning of coarse sampling, not a validated accuracy threshold. Area sampling reduces edge-rounding errors, but display subpixels and viewing angle can still affect results.</p><p>When using Imported image mode, edit the total width and height directly beside the enlarged previews. The image never stretches: the source aspect ratio is locked by default; when unlocked, Contain adds margins or Cover crops the edges. The left canvas shows your area-averaged pixel design and the right canvas shows the source image, both at the calibrated physical dimensions. The enlarged preview is not calibrated. This is an approximate test of visual spatial resolution. Display emission differs from the reflection, scattering, luminance, and spectrum of a real metasurface. It cannot precisely predict sample appearance. For a supplementary test with finer display sampling, scale sample size, test pixel size, and viewing distance by the same factor.</p></section></main>
+<script>
+const $=id=>document.getElementById(id);let ppm=96/25.4;
+const lin=v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4;
+const enc=v=>Math.round(255*(v<=.0031308?12.92*v:1.055*v**(1/2.4)-.055));
+const rgb=h=>[1,3,5].map(i=>lin(parseInt(h.slice(i,i+2),16)/255));
+function kind(x,y){switch($('pattern').value){case 'checker':return (x+y)%2;case 'stripes':return x%2;case 'halves':return x;default:let v=Math.imul(x+1,374761393)^Math.imul(y+1,668265263);v=Math.imul(v^(v>>>13),1274126177);return (v^(v>>>16))&1;}}
+// Geometric single-stroke font: coordinates span x=0..4 and y=0..6.
+const glyphs={
+A:'0,6 2,0 4,6|0.7,4 3.3,4',B:'0,6 0,0 2.5,0 4,1 4,2 2.5,3 0,3|2.5,3 4,4 4,5 2.5,6 0,6',
+C:'4,0.5 3,0 1,0 0,1 0,5 1,6 3,6 4,5.5',D:'0,6 0,0 2,0 4,1.5 4,4.5 2,6 0,6',
+E:'4,0 0,0 0,6 4,6|0,3 3,3',F:'4,0 0,0 0,6|0,3 3,3',G:'4,1 3,0 1,0 0,1 0,5 1,6 3,6 4,5 4,3 2,3',
+H:'0,0 0,6|4,0 4,6|0,3 4,3',I:'0,0 4,0|2,0 2,6|0,6 4,6',J:'0,0 4,0 4,5 3,6 1,6 0,5',
+K:'0,0 0,6|4,0 0,3 4,6',L:'0,0 0,6 4,6',M:'0,6 0,0 2,3 4,0 4,6',N:'0,6 0,0 4,6 4,0',
+O:'1,0 3,0 4,1 4,5 3,6 1,6 0,5 0,1 1,0',P:'0,6 0,0 3,0 4,1 4,2 3,3 0,3',
+Q:'1,0 3,0 4,1 4,5 3,6 1,6 0,5 0,1 1,0|2,4 4,6',R:'0,6 0,0 3,0 4,1 4,2 3,3 0,3|2,3 4,6',
+S:'4,1 3,0 1,0 0,1 0,2 1,3 3,3 4,4 4,5 3,6 1,6 0,5',T:'0,0 4,0|2,0 2,6',U:'0,0 0,5 1,6 3,6 4,5 4,0',
+V:'0,0 2,6 4,0',W:'0,0 1,6 2,3 3,6 4,0',X:'0,0 4,6|4,0 0,6',Y:'0,0 2,3 4,0|2,3 2,6',Z:'0,0 4,0 0,6 4,6',
+'0':'1,0 3,0 4,1 4,5 3,6 1,6 0,5 0,1 1,0|0.5,5.5 3.5,0.5',
+'1':'1,1 2,0 2,6|0,6 4,6','2':'0,1 1,0 3,0 4,1 4,2 0,6 4,6','3':'0,0 4,0 2,3 4,4 4,5 3,6 0,6',
+'4':'3,6 3,0 0,4 4,4','5':'4,0 0,0 0,3 3,3 4,4 4,5 3,6 0,6','6':'4,0 1,0 0,1 0,5 1,6 3,6 4,5 4,4 3,3 0,3',
+'7':'0,0 4,0 1,6','8':'1,0 3,0 4,1 4,2 3,3 1,3 0,2 0,1 1,0|1,3 0,4 0,5 1,6 3,6 4,5 4,4 3,3',
+'9':'4,3 1,3 0,2 0,1 1,0 3,0 4,1 4,5 3,6 0,6'};
+// Geometry masks share the physical test grid; no platform emoji fonts are used.
+function iconMask(sw,sh){
+ const iw=+$('iconWidth').value,ih=+$('iconHeight').value,stroke=+$('iconStroke').value;
+ if(!(iw>0&&ih>0&&iw<=50&&ih<=50&&stroke>0&&stroke<=10)){ $('textStatus').textContent='Enter valid positive icon dimensions and line width.';return false; }
+ const face=$('mode').value==='faces',name=face?$('face').value:$('shape').value;
+ const outer=new Path2D(),detail=new Path2D();
+ const poly=(path,pts)=>{path.moveTo(...pts[0]);pts.slice(1).forEach(p=>path.lineTo(...p));path.closePath();};
+ const disc=(path,x,y,r)=>{path.moveTo(x+r,y);path.arc(x,y,r,0,2*Math.PI);};
+ const line=(path,pts)=>{path.moveTo(...pts[0]);pts.slice(1).forEach(p=>path.lineTo(...p));};
+ const regular=(n,r=43,inner=null)=>Array.from({length:inner?n*2:n},(_,i)=>{const a=-Math.PI/2+i*2*Math.PI/(inner?n*2:n),v=inner&&i%2?inner:r;return [50+v*Math.cos(a),50+v*Math.sin(a)];});
+ const heart=(path,x=50,y=50,k=1)=>{path.moveTo(x,y+32*k);path.bezierCurveTo(x-65*k,y-10*k,x-27*k,y-56*k,x,y-25*k);path.bezierCurveTo(x+27*k,y-56*k,x+65*k,y-10*k,x,y+32*k);path.closePath();};
+ if(face){
+ disc(outer,50,50,43);
+ const f=name;
+ if(f==='love'){heart(detail,34,40,.25);heart(detail,66,40,.25);}
+ else if(f==='cool'){poly(detail,[[23,33],[44,33],[42,46],[28,46]]);poly(detail,[[56,33],[77,33],[72,46],[58,46]]);line(detail,[[44,37],[56,37]]);}
+ else if(f==='happy'){detail.moveTo(26,42);detail.quadraticCurveTo(34,26,42,42);detail.moveTo(58,42);detail.quadraticCurveTo(66,26,74,42);}
+ else {disc(detail,34,39,3);if(f==='wink')line(detail,[[59,39],[72,39]]);else disc(detail,66,39,3);}
+ if(f==='surprise')disc(detail,50,65,10);
+ else if(f==='neutral')line(detail,[[33,65],[67,65]]);
+ else if(f==='sad'||f==='angry'){detail.moveTo(30,73);detail.quadraticCurveTo(50,49,70,73);}
+ else {detail.moveTo(28,58);detail.bezierCurveTo(35,82,65,82,72,58);if(f==='happy'||f==='tongue'){detail.closePath();}if(f==='tongue'){detail.moveTo(50,70);detail.lineTo(50,81);detail.bezierCurveTo(50,92,65,92,65,81);detail.lineTo(65,69);}}
+ if(f==='angry'){line(detail,[[25,27],[42,32]]);line(detail,[[58,32],[75,27]]);}
+ } else switch(name){
+ case 'circle':case 'ellipse':disc(outer,50,50,43);break;
+ case 'square':outer.rect(7,7,86,86);break;
+ case 'triangle':poly(outer,regular(3));break;
+ case 'diamond':poly(outer,regular(4));break;
+ case 'pentagon':poly(outer,regular(5));break;
+ case 'hexagon':poly(outer,regular(6));break;
+ case 'star':poly(outer,regular(5,44,20));break;
+ case 'heart':heart(outer);break;
+ case 'arrow':poly(outer,[[7,35],[55,35],[55,10],[93,50],[55,90],[55,65],[7,65]]);break;
+ case 'plus':poly(outer,[[36,7],[64,7],[64,36],[93,36],[93,64],[64,64],[64,93],[36,93],[36,64],[7,64],[7,36],[36,36]]);break;
+ case 'cross':poly(outer,[[17,7],[50,40],[83,7],[93,17],[60,50],[93,83],[83,93],[50,60],[17,93],[7,83],[40,50],[7,17]]);break;
+ case 'moon':outer.moveTo(72,12);outer.bezierCurveTo(0,-5,-5,105,72,88);outer.bezierCurveTo(29,76,29,24,72,12);outer.closePath();break;
+ case 'sun':disc(outer,50,50,24);for(let i=0;i<12;i++){const a=i*Math.PI/6;line(detail,[[50+32*Math.cos(a),50+32*Math.sin(a)],[50+44*Math.cos(a),50+44*Math.sin(a)]]);}break;
+ case 'flower':for(let i=0;i<6;i++){const a=i*Math.PI/3;disc(outer,50+25*Math.cos(a),50+25*Math.sin(a),18);}disc(detail,50,50,12);break;
+ case 'check':line(detail,[[12,52],[38,78],[88,22]]);break;
+ }
+ const ctx=document.createElement('canvas').getContext('2d');ctx.lineWidth=stroke/Math.min(iw,ih)*100;ctx.lineCap='round';ctx.lineJoin='round';
+ const filled=$('iconStyle').value==='filled',a=(+$('rotation').value||0)*Math.PI/180,c=Math.cos(a),sn=Math.sin(a);
+ const p=+$('pitch').value,nx=Math.ceil(sw/p),ny=Math.ceil(sh/p),cells=new Uint8Array(nx*ny);let count=0;
+ for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){
+ if((x+1)*p>sw+1e-9||(y+1)*p>sh+1e-9)continue;
+ const dx=(x+.5)*p-sw/2,dy=(y+.5)*p-sh/2,X=(dx*c+dy*sn)/iw*100+50,Y=(-dx*sn+dy*c)/ih*100+50;
+ const inside=ctx.isPointInPath(outer,X,Y),edge=ctx.isPointInStroke(outer,X,Y),feature=ctx.isPointInStroke(detail,X,Y)||ctx.isPointInPath(detail,X,Y);
+ const on=face?(filled?(inside&&!feature):(edge||feature)):(filled?(inside||feature):(edge||feature));
+ if(on){cells[y*nx+x]=1;count++;}
+ }
+ const bw=Math.abs(iw*c)+Math.abs(ih*sn),bh=Math.abs(iw*sn)+Math.abs(ih*c);
+ $('textStatus').textContent=`${name}: ${iw.toFixed(2)} × ${ih.toFixed(2)} mm · ${count} complete pixels selected.`+(bw>sw||bh>sh?' Design may extend beyond the sample and is cropped.':'')+(count===0?' Increase design size or line width, or reduce pixel size.':'');
+ return {cells,nx,ny};
+}
+function updateControls(){const mode=$('mode').value,icon=mode==='shapes'||mode==='faces',isImage=mode==='image';$('textControls').hidden=mode!=='letters';$('iconControls').hidden=!icon;$('shape').parentElement.hidden=mode!=='shapes';$('face').parentElement.hidden=mode!=='faces';$('uploadControls').hidden=!isImage;$('physicalPitchGlobal').hidden=isImage;$('patternControls').hidden=isImage;$('globalSampleWidth').hidden=isImage;$('globalSampleHeight').hidden=isImage;$('globalImageDimensionsNote').hidden=!isImage;$('imageCountInputs').hidden=$('imageGridMode').value!=='count';$('imagePitchInputs').hidden=$('imageGridMode').value==='count';}
+function letterMask(NX,NY,sw,sh){
+ if(['shapes','faces'].includes($('mode').value))return iconMask(sw,sh);
+ if($('mode').value!=='letters')return null;
+ const h=+$('letterHeight').value,w=+$('stroke').value,gap=+$('spacing').value;
+ const text=$('letters').value.toUpperCase();
+ if(!(h>0&&w>0&&w<h&&gap>=0)){ $('textStatus').textContent='Stroke width must be positive and smaller than letter height.';return false; }
+ if(/[^A-Z0-9 ]/.test(text)){ $('textStatus').textContent='Use A–Z, 0–9, and spaces only.';return false; }
+ const ux=(h-w)/6,uy=ux,cw=4*ux+w,total=text.length?text.length*cw+(text.length-1)*gap:0;
+ $('textStatus').textContent=total>sw||h>sh?'Text exceeds the sample and is clipped. Increase sample size or reduce letter size/spacing.':`Text bounds: ${total.toFixed(2)} × ${h.toFixed(2)} mm. Stroke: ${w.toFixed(2)} mm.`;
+ const segments=[],left=(sw-total)/2+w/2,top=(sh-h)/2+w/2;
+ [...text].forEach((ch,i)=>{if(!glyphs[ch])return;for(const line of glyphs[ch].split('|')){
+ const points=line.split(' ').map(point=>{const [x,y]=point.split(',').map(Number);return [left+i*(cw+gap)+x*ux,top+y*uy];});
+ for(let j=1;j<points.length;j++)segments.push([points[j-1],points[j]]);
+ }});
+ const p=+$('pitch').value,nx=Math.ceil(sw/p),ny=Math.ceil(sh/p),cells=new Uint8Array(nx*ny);
+ function inside(x,y){return segments.some(([a,b])=>{const dx=b[0]-a[0],dy=b[1]-a[1],den=dx*dx+dy*dy,t=den?Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/den)):0;return (x-a[0]-t*dx)**2+(y-a[1]-t*dy)**2<=(w/2)**2;});}
+ for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){
+ // Only complete cells inside the sample are eligible; choose by cell center.
+ if((x+1)*p<=sw+1e-9&&(y+1)*p<=sh+1e-9&&inside((x+.5)*p,(y+.5)*p))cells[y*nx+x]=1;
+ }
+ $('textStatus').textContent+=' Whole cells only; selected by whether their centers fall inside a stroke. Actual letter outlines are quantized to the pixel grid.';
+ return {cells,nx,ny};
+}
+
+// Uploaded-image pipeline. Browser-only: no data is transmitted.
+let uploadedImage=null, originalRGBA=null, imageVersion=0, pixelGrid=null, pixelCanvas=null;
+const positiveInt=(id,maximum=400)=>Math.max(1,Math.min(maximum,Math.round(+$(id).value||1)));
+function backgroundBytes(){const h=$('background').value;return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16));}
+function makeCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
+function downloadBlob(blob,name){if(!blob)return;const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);}
+function sendPNG(canvas,name){if(!canvas)return;canvas.toBlob(blob=>downloadBlob(blob,name),'image/png');}
+function sourceWindowFit(sw,sh){
+ const iw=uploadedImage.width,ih=uploadedImage.height;
+ // Both modes use uniform scaling: the imported image can NEVER be stretched.
+ const scale=$('imageFit').value==='cover'?Math.max(sw/iw,sh/ih):Math.min(sw/iw,sh/ih);
+ return {sx:scale,sy:scale,ox:(sw-scale*iw)/2,oy:(sh-scale*ih)/2};
+}
+// Source-pixel intersection gives the genuine area-weighted average, including fractional edge pixels.
+function averageSourceRect(x0,y0,x1,y1,linear,bg){
+ const w=uploadedImage.width,h=uploadedImage.height,raw=originalRGBA.data;
+ x0=Math.max(0,Math.min(w,x0));x1=Math.max(0,Math.min(w,x1));
+ y0=Math.max(0,Math.min(h,y0));y1=Math.max(0,Math.min(h,y1));
+ if(x1<=x0||y1<=y0)return {rgb:bg,area:0};
+ const result=[0,0,0],full=(x1-x0)*(y1-y0);
+ for(let y=Math.floor(y0);y<Math.ceil(y1);y++){
+   const wy=Math.max(0,Math.min(y+1,y1)-Math.max(y,y0));if(!wy)continue;
+   for(let x=Math.floor(x0);x<Math.ceil(x1);x++){
+     const wx=Math.max(0,Math.min(x+1,x1)-Math.max(x,x0));if(!wx)continue;
+     const q=(y*w+x)*4,weight=wx*wy,alpha=raw[q+3]/255;
+     for(let c=0;c<3;c++){
+       const base=linear?lin(bg[c]/255):bg[c]/255;
+       const v=linear?lin(raw[q+c]/255):raw[q+c]/255;
+       result[c]+=weight*(alpha*v+(1-alpha)*base);
+     }
+   }
+ }
+ return {rgb:result.map(v=>v/full),area:full};
+}
+function computeGrid(sw,sh,p){
+ if(!uploadedImage||!originalRGBA)return null;
+ const countMode=$('imageGridMode').value==='count';
+ const actualPitch=countMode?p:Math.max(p,sw/400,sh/400); // Cap both axes consistently to retain square physical pixels.
+ let nx=countMode?positiveInt('imageCols'):Math.ceil(sw/actualPitch),ny=countMode?positiveInt('imageRows'):Math.ceil(sh/actualPitch);
+ nx=Math.min(nx,400);ny=Math.min(ny,400);
+ const fit=sourceWindowFit(sw,sh),background=backgroundBytes(),linear=$('imageAverageSpace').value==='linear';
+ const cw=countMode?sw/nx:actualPitch,ch=countMode?sh/ny:actualPitch;
+ const cached=computeGrid.cached,key=[imageVersion,sw,sh,p,countMode,nx,ny,$('imageFit').value,$('imageAverageSpace').value,$('background').value].join('|');
+ if(cached&&cached.key===key)return cached.grid;
+ const grid=new Uint8ClampedArray(nx*ny*4),colorBg=background.map(v=>linear?lin(v/255):v/255);
+ for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){
+   const a=x*cw,b=y*ch,rx=Math.min(sw,a+cw),by=Math.min(sh,b+ch);
+   const i0=Math.max(a,fit.ox),i1=Math.min(rx,fit.ox+uploadedImage.width*fit.sx);
+   const j0=Math.max(b,fit.oy),j1=Math.min(by,fit.oy+uploadedImage.height*fit.sy);
+   const area=(rx-a)*(by-b),overlap=Math.max(0,i1-i0)*Math.max(0,j1-j0);
+   let source={rgb:colorBg};
+   if(overlap>0)source=averageSourceRect((i0-fit.ox)/fit.sx,(j0-fit.oy)/fit.sy,(i1-fit.ox)/fit.sx,(j1-fit.oy)/fit.sy,linear,background);
+   const idx=4*(y*nx+x),frac=area>0?overlap/area:0;
+   for(let c=0;c<3;c++){
+     const v=colorBg[c]*(1-frac)+source.rgb[c]*frac;
+     grid[idx+c]=linear?enc(v):Math.round(v*255);
+   }
+   grid[idx+3]=255;
+ }
+ const canvas=makeCanvas(nx,ny);canvas.getContext('2d').putImageData(new ImageData(grid,nx,ny),0,0);
+ const result={nx,ny,cw,ch,grid,canvas,mode:countMode?'count':'pitch'};
+ computeGrid.cached={key,grid:result};
+ return result;
+}
+function paintSource(canvas,sw,sh,clear=true){
+ const ctx=canvas.getContext('2d');if(clear){ctx.fillStyle=$('background').value;ctx.fillRect(0,0,canvas.width,canvas.height);}
+ if(!uploadedImage)return;
+ const f=sourceWindowFit(sw,sh),kx=canvas.width/sw,ky=canvas.height/sh;
+ ctx.drawImage(uploadedImage.bitmap,f.ox*kx,f.oy*ky,uploadedImage.width*f.sx*kx,uploadedImage.height*f.sy*ky);
+}
+function renderImageMode(sw,sh,p,d,NX,NY,cssW,cssH){
+ const sample=$('sample'),reference=$('average'),ctx=sample.getContext('2d');
+ $('sampleCaption').textContent='Area-averaged pixels at physical sample size';
+ $('averageCaption').textContent='Original image at physical sample size';
+ $('largePreview').hidden=false;
+ if(!uploadedImage){
+   $('imageGridReadout').textContent='Upload an image';$('actualCellInfo').textContent='Upload a photo to view the resulting pixel grid.';
+   for(let id of ['pixelPreview','sourcePreview']){const c=$(id);c.width=420;c.height=330;const cc=c.getContext('2d');cc.fillStyle='#e9edf2';cc.fillRect(0,0,c.width,c.height);cc.fillStyle='#8291a3';cc.font='17px system-ui';cc.textAlign='center';cc.fillText('Upload an image to preview',c.width/2,c.height/2);}
+   for(let c of [sample,reference]){const cc=c.getContext('2d');cc.fillStyle=$('background').value;cc.fillRect(0,0,c.width,c.height);}
+   $('stats').textContent=`Sample: ${sw} × ${sh} mm · Viewing distance: ${d} cm. Upload an image to begin.`;
+   $('textStatus').textContent='Choose an image above. Use the physical pixel pitch or a specified number of columns and rows.';
+   pixelGrid=null;pixelCanvas=null;
+   for(let id of ['downloadPixels','downloadPreview','downloadCSV'])$(id).disabled=true;
+   return;
+ }
+ pixelGrid=computeGrid(sw,sh,p);pixelCanvas=pixelGrid.canvas;
+ // Nearest-neighbor enlargement gives solid color blocks. Browser sub-pixel sampling is unavoidable on physically small previews.
+ ctx.imageSmoothingEnabled=false;ctx.drawImage(pixelCanvas,0,0,NX,NY);
+ paintSource(reference,sw,sh);
+ const maxWidth=460,maxHeight=450,scale=Math.min(maxWidth/sw,maxHeight/sh);
+ const PW=Math.max(1,Math.round(sw*scale)),PH=Math.max(1,Math.round(sh*scale));
+ for(let id of ['pixelPreview','sourcePreview']){$(id).width=PW;$(id).height=PH;$(id).style.width=PW+'px';$(id).style.height=PH+'px';}
+ const pc=$('pixelPreview').getContext('2d');pc.imageSmoothingEnabled=false;pc.drawImage(pixelCanvas,0,0,PW,PH);
+ if($('imageGridLines').checked&&pixelGrid.nx<=140&&pixelGrid.ny<=140){
+   pc.strokeStyle='rgba(30,30,30,.24)';pc.lineWidth=1;
+   for(let x=1;x<pixelGrid.nx;x++){const xx=Math.round(x*pixelGrid.cw/sw*PW)+.5;pc.beginPath();pc.moveTo(xx,0);pc.lineTo(xx,PH);pc.stroke();}
+   for(let y=1;y<pixelGrid.ny;y++){const yy=Math.round(y*pixelGrid.ch/sh*PH)+.5;pc.beginPath();pc.moveTo(0,yy);pc.lineTo(PW,yy);pc.stroke();}
+ }
+ paintSource($('sourcePreview'),sw,sh);
+ $('imageGridReadout').textContent=`${pixelGrid.nx} × ${pixelGrid.ny} cells`;
+  $('actualCellInfo').innerHTML=`<strong>${pixelGrid.nx} × ${pixelGrid.ny}</strong> pixels · ${(pixelGrid.nx*pixelGrid.ny).toLocaleString()} total<br>Each cell: ${pixelGrid.cw.toFixed(3)} × ${pixelGrid.ch.toFixed(3)} mm`;
+  $('imageSizeSummary').textContent=`Sample: ${sw.toFixed(2)} × ${sh.toFixed(2)} mm`;
+  $('imageAspectInfo').textContent=$('imageAspectLock').checked?`Original image ratio: ${(uploadedImage.originalWidth/uploadedImage.originalHeight).toFixed(4)} : 1. Editing either dimension adjusts the other.`:'Width and height are independent. The source image remains undistorted (margins or cropping, depending on fit).';
+  const realPxPerCellX=pixelGrid.cw*ppm*devicePixelRatio,realPxPerCellY=pixelGrid.ch*ppm*devicePixelRatio;
+ const thetaX=3438*pixelGrid.cw/(d*10),thetaY=3438*pixelGrid.ch/(d*10);
+ $('stats').textContent=`Source: ${uploadedImage.width} × ${uploadedImage.height}px · Pixel grid: ${pixelGrid.nx} × ${pixelGrid.ny} = ${(pixelGrid.nx*pixelGrid.ny).toLocaleString()} cells · Cell size: ${pixelGrid.cw.toFixed(3)} × ${pixelGrid.ch.toFixed(3)} mm · Angular size: ${thetaX.toFixed(2)} × ${thetaY.toFixed(2)} arcmin · Display sampling: ${realPxPerCellX.toFixed(2)} × ${realPxPerCellY.toFixed(2)} pixels/cell`+(Math.min(realPxPerCellX,realPxPerCellY)<3?' ⚠ Coarse physical display sampling.':'');
+ $('textStatus').textContent=`Image fit: ${$('imageFit').value}. Pixel colors are ${$('imageAverageSpace').value==='linear'?'linear-light':'sRGB arithmetic'} area averages. The physical-size preview may not resolve fine cells; use the enlarged preview and exported PNG to inspect the exact grid.`;
+ for(let id of ['downloadPixels','downloadPreview','downloadCSV'])$(id).disabled=false;
+}
+async function loadImageFile(file){
+ if(!file)return;
+ $('imageStatus').textContent='Loading image locally…';
+ const url=URL.createObjectURL(file),img=new Image();
+ try{
+   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});
+   // Store source pixels once. Huge uploads are reduced to an 8-Mpixel working image to avoid browser memory exhaustion.
+   let w=img.naturalWidth,h=img.naturalHeight;
+   const factor=Math.min(1,Math.sqrt(8000000/(w*h)),4096/w,4096/h);
+   w=Math.max(1,Math.round(w*factor));h=Math.max(1,Math.round(h*factor));
+   const work=makeCanvas(w,h),c=work.getContext('2d',{willReadFrequently:true});
+   c.drawImage(img,0,0,w,h);const imageData=c.getImageData(0,0,w,h);
+   uploadedImage={width:w,height:h,bitmap:work,originalWidth:img.naturalWidth,originalHeight:img.naturalHeight};originalRGBA=imageData;
+   imageVersion++;computeGrid.cached=null;
+   // Fit the physical sample to the image's native proportions by default.
+   if($('imageAspectLock').checked)adjustImagePhysicalSize('width',+$('imageSampleWidth').value||10);
+   $('imageStatus').textContent=`Loaded ${file.name} (${img.naturalWidth} × ${img.naturalHeight} pixels).`+(factor<1?' Large source was downsampled for memory safety; averages are computed over this working image.':' Exact source-pixel area averaging is enabled.');
+   render();
+ }catch(e){uploadedImage=null;originalRGBA=null;$('imageStatus').textContent='Unable to read this image. Try a common JPG, PNG, or WebP file.';render();}
+ finally{URL.revokeObjectURL(url);}
+}
+function exportCSV(){if(!pixelGrid)return;let lines=['column,row,R,G,B,HEX'];
+ const g=pixelGrid;
+ for(let y=0;y<g.ny;y++)for(let x=0;x<g.nx;x++){
+   const i=(y*g.nx+x)*4,r=g.grid[i],gg=g.grid[i+1],b=g.grid[i+2],hex='#'+[r,gg,b].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
+   lines.push(`${x+1},${y+1},${r},${gg},${b},${hex}`);
+ }
+ downloadBlob(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'}),'metasurface-pixel-colors.csv');
+}
+function exportEnlargedPNG(){if(!pixelGrid)return;
+ const g=pixelGrid,z=Math.max(1,Math.min(36,Math.floor(2400/Math.max(g.nx,g.ny))));
+ const canvas=makeCanvas(g.nx*z,g.ny*z),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.drawImage(pixelCanvas,0,0,canvas.width,canvas.height);
+ sendPNG(canvas,'metasurface-pixel-preview.png');
+}
+function render(){updateControls();let sw=+$('sampleWidth').value,sh=+$('sampleHeight').value,p=+$('pitch').value,d=+$('distance').value;const isImage=$('mode').value==='image',minSize=isImage?.1:1,maxSize=isImage?100:50;if(!(sw>=minSize&&sw<=maxSize&&sh>=minSize&&sh<=maxSize&&p>=.02&&p<=5&&d>=10&&d<=200))return;
+$('ruler').style.width=50*ppm+'px';$('scale').textContent=ppm.toFixed(3)+' CSS px/mm';
+if($('mode').value==='image'){
+ const cssW=sw*ppm,cssH=sh*ppm,NX=Math.max(1,Math.round(cssW*devicePixelRatio)),NY=Math.max(1,Math.round(cssH*devicePixelRatio));
+ for(let id of ['sample','average']){$(id).style.width=cssW+'px';$(id).style.height=cssH+'px';$(id).width=NX;$(id).height=NY;}
+ renderImageMode(sw,sh,p,d,NX,NY,cssW,cssH);return;
+}
+let nx=Math.ceil(sw/p),ny=Math.ceil(sh/p),A=rgb($('a').value),B=rgb($('b').value),fraction=0;
+// Calculate the exact area fraction, including clipped edge pixels.
+if($('pattern').value==='halves')fraction=.5;else for(let y=0;y<ny;y++)for(let x=0;x<nx;x++)fraction+=kind(x,y)*Math.min(p,sw-x*p)*Math.min(p,sh-y*p)/(sw*sh);
+let mean=A.map((v,i)=>v*(1-fraction)+B[i]*fraction),t=+$('contrast').value/100;
+A=A.map((v,i)=>mean[i]+t*(v-mean[i]));B=B.map((v,i)=>mean[i]+t*(v-mean[i]));
+let cssW=sw*ppm,cssH=sh*ppm,NX=Math.max(1,Math.round(cssW*devicePixelRatio)),NY=Math.max(1,Math.round(cssH*devicePixelRatio));
+for(let id of ['sample','average']){$(id).style.width=cssW+'px';$(id).style.height=cssH+'px';$(id).width=NX;$(id).height=NY;}
+$('sampleCaption').textContent='Pattern at calibrated physical size';$('averageCaption').textContent='Average-color reference (same shape)';$('largePreview').hidden=true;
+$('textStatus').textContent='';const mask=letterMask(NX,NY,sw,sh);if(mask===false)return;const bg=rgb($('background').value);
+let ctx=$('sample').getContext('2d'),data=ctx.createImageData(NX,NY),avg=$('average').getContext('2d');
+// Integrate each complete selected cell over the display-pixel footprint.
+const ref=avg.createImageData(NX,NY);
+for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){
+ const x0=i*sw/NX,x1=(i+1)*sw/NX,y0=j*sh/NY,y1=(j+1)*sh/NY,area=(x1-x0)*(y1-y0);let coverage=0,f=0;
+ for(let y=Math.floor(y0/p);y<Math.ceil(y1/p);y++)for(let x=Math.floor(x0/p);x<Math.ceil(x1/p);x++){
+ if(mask&&!(x<mask.nx&&y<mask.ny&&mask.cells[y*mask.nx+x]))continue;
+ const lx=Math.max(x0,x*p),rx=Math.min(x1,(x+1)*p),weight=Math.max(0,rx-lx)*Math.max(0,Math.min(y1,(y+1)*p)-Math.max(y0,y*p))/area;
+ coverage+=weight;
+ f+=weight*($('pattern').value==='halves'?(rx>lx?Math.max(0,rx-Math.max(lx,sw/2))/(rx-lx):0):kind(x,y));
+ }
+ coverage=Math.min(1,coverage);f=Math.max(0,Math.min(coverage,f));const k=4*(j*NX+i);
+ for(let c=0;c<3;c++){data.data[k+c]=enc(A[c]*(coverage-f)+B[c]*f+bg[c]*(1-coverage));ref.data[k+c]=enc(mean[c]*coverage+bg[c]*(1-coverage));}
+ data.data[k+3]=ref.data[k+3]=255;
+}
+ctx.putImageData(data,0,0);avg.putImageData(ref,0,0);
+let px=p*ppm*devicePixelRatio,theta=3438*p/(d*10);$('contrastText').textContent=Math.round(t*100)+'%';$('stats').textContent=`Sample: ${sw} × ${sh} mm · Test pixel: ${p} mm · Distance: ${d} cm · Angular width: ${theta.toFixed(2)} arcmin · Equivalent AB stripe frequency: ${(30/theta).toFixed(2)} cycles/degree · Approx. ${px.toFixed(2)} display pixels per test pixel`+(px<3?' ⚠ Coarse display sampling: interpret results cautiously.':'');}
+$('fitIcon').onclick=()=>{$('iconWidth').value=(+$('sampleWidth').value*.9).toFixed(2);$('iconHeight').value=(+$('sampleHeight').value*.9).toFixed(2);$('rotation').value=0;render();};
+$('calibrate').onclick=()=>{let m=+$('measured').value;if(m>0){ppm*=50/m;$('measured').value=50;render();}};
+$('preset').onchange=()=>{let c={bw:['#000000','#ffffff'],rg:['#ff0000','#009400'],rb:['#ff0000','#0000ff']}[$('preset').value];if(c){$('a').value=c[0];$('b').value=c[1];}render();};
+for(let id of ['sampleWidth','sampleHeight','pitch','distance','pattern','contrast','mode','letters','letterHeight','stroke','spacing','background','shape','face','iconWidth','iconHeight','iconStyle','iconStroke','rotation','imageFit','imageGridMode','imageAverageSpace','imageGridLines'])$(id).oninput=render;
+for(let id of ['a','b'])$(id).oninput=()=>{$('preset').value='custom';render();};
+// The pitch slider is logarithmic: fine control for small, metasurface-scale pixels.
+let frameRequested=false;
+function scheduleImageRender(){if(frameRequested)return;frameRequested=true;requestAnimationFrame(()=>{frameRequested=false;render();});}
+const physicalSizeMin=.1,physicalSizeMax=100;
+const limitPhysicalSize=v=>Math.max(physicalSizeMin,Math.min(physicalSizeMax,v));
+function adjustImagePhysicalSize(changed,value){
+ if(!Number.isFinite(value)||value<=0)return;
+ let w=changed==='width'?value:+$('sampleWidth').value;
+ let h=changed==='height'?value:+$('sampleHeight').value;
+ if($('imageAspectLock').checked&&uploadedImage){
+  const ratio=uploadedImage.originalWidth/uploadedImage.originalHeight;
+  if(changed==='width'){w=limitPhysicalSize(value);h=w/ratio;if(h<physicalSizeMin){h=physicalSizeMin;w=h*ratio;}if(h>physicalSizeMax){h=physicalSizeMax;w=h*ratio;}}
+  else {h=limitPhysicalSize(value);w=h*ratio;if(w<physicalSizeMin){w=physicalSizeMin;h=w/ratio;}if(w>physicalSizeMax){w=physicalSizeMax;h=w/ratio;}}
+  // For extreme source aspect ratios, avoid invalid input values; contain will add margins.
+  w=limitPhysicalSize(w);h=limitPhysicalSize(h);
+ }else if(changed==='width')w=limitPhysicalSize(value);else h=limitPhysicalSize(value);
+ for(const [key,v] of [['Width',w],['Height',h]]){
+  const rounded=+v.toFixed(4);
+  $('imageSample'+key).value=rounded;
+  $('sample'+key).value=rounded;
+  $('imageSample'+key+'Slider').value=rounded;
+ }
+ scheduleImageRender();
+}
+for(const key of ['Width','Height']){
+ const changed=key.toLowerCase(),id='imageSample'+key;
+ $(id+'Slider').addEventListener('input',()=>adjustImagePhysicalSize(changed,+$(id+'Slider').value));
+ $(id).addEventListener('input',()=>adjustImagePhysicalSize(changed,+$(id).value));
+}
+$('imageAspectLock').addEventListener('change',()=>{
+ if($('imageAspectLock').checked&&uploadedImage)adjustImagePhysicalSize('width',+$('imageSampleWidth').value);
+ else scheduleImageRender();
+});
+const fromPitchSlider=t=>.02*Math.pow(250,Math.max(0,Math.min(1000,t))/1000);
+const toPitchSlider=p=>1000*Math.log(Math.max(.02,Math.min(5,p))/.02)/Math.log(250);
+$('imagePitchSlider').addEventListener('input',()=>{
+ const p=+fromPitchSlider(+$('imagePitchSlider').value).toFixed(3);
+ $('imagePitch').value=p;$('pitch').value=p;scheduleImageRender();
+});
+$('imagePitch').addEventListener('input',()=>{
+ let p=+$('imagePitch').value;if(!Number.isFinite(p)||p<=0)return;
+ p=Math.max(.02,Math.min(5,p));$('pitch').value=p;$('imagePitchSlider').value=toPitchSlider(p);scheduleImageRender();
+});
+for(const id of ['imageCols','imageRows']){
+ const slider=$(id+'Slider');
+ slider.addEventListener('input',()=>{$(id).value=slider.value;scheduleImageRender();});
+ $(id).addEventListener('input',()=>{slider.value=Math.max(+slider.min,Math.min(+slider.max,+$(id).value||1));scheduleImageRender();});
+}
+$('mode').addEventListener('change',()=>{
+ if($('mode').value==='image'){
+  $('imagePitch').value=$('pitch').value;
+  $('imagePitchSlider').value=toPitchSlider(+$('pitch').value);
+  if($('imageAspectLock').checked&&uploadedImage)adjustImagePhysicalSize('width',+$('sampleWidth').value);
+  else for(const key of ['Width','Height']){
+   $('imageSample'+key).value=$('sample'+key).value;
+   $('imageSample'+key+'Slider').value=$('sample'+key).value;
+  }
+ }
+ render();
+});
+$('imageFile').addEventListener('change',e=>loadImageFile(e.target.files?.[0]));
+$('downloadPixels').onclick=()=>sendPNG(pixelCanvas,'metasurface-pixel-grid.png');
+$('downloadPreview').onclick=exportEnlargedPNG;
+$('downloadCSV').onclick=exportCSV;
+$('focus').onclick=()=>document.body.classList.toggle('focus');document.addEventListener('keydown',e=>{if(e.key==='Escape')document.body.classList.remove('focus');});window.addEventListener('resize',render);render();
+</script></html>
